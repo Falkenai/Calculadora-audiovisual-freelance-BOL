@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presupuesto Freelance BO</title>
+    <title>Presupuesto Audiovisual y Freelance Bolivia</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -207,7 +207,6 @@
                         <h3 class="text-xl font-semibold mb-2">Cambio USD/BOB</h3>
                         <p class="text-3xl font-bold text-green-600 mb-2" id="exchange-rate-display">Cargando...</p>
                         <p class="text-xs text-gray-500">Tasa de compra (USDT) en Binance P2P.</p>
-                        <!-- BOTÓN NUEVO -->
                         <a href="https://p2p.binance.com/es/trade/buy/USDT?fiat=BOB&payment=all-payments" target="_blank" rel="noopener noreferrer" class="btn btn-secondary w-full mt-4 text-sm py-2">
                             Ver en Binance P2P
                         </a>
@@ -265,7 +264,7 @@
             margenGanancia: 20,
             iva: 13,
             tarifaHoraBase: 0,
-            exchangeRate: 0, // Nuevo estado para la tasa de cambio
+            exchangeRate: 0,
         };
 
         // --- SELECTORES DEL DOM ---
@@ -465,7 +464,7 @@
             }
         }
         
-        // --- OBTENER TASA DE CAMBIO (CORREGIDO) ---
+        // --- OBTENER TASA DE CAMBIO (CORREGIDO Y MEJORADO) ---
         async function fetchExchangeRate() {
             const requestBody = {
                 fiat: "BOB",
@@ -481,26 +480,29 @@
                 classifies: ["mass", "profession"]
             };
 
-            // URL de la API de Binance
             const apiUrl = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
-            // URL del proxy para evitar errores de CORS
-            const proxyUrl = "https://corsproxy.io/?";
+            // Usando un proxy más robusto: allorigins.win
+            const proxyUrl = "https://api.allorigins.win/raw?url=";
 
             try {
-                const response = await fetch(proxyUrl + apiUrl, {
+                const response = await fetch(`${proxyUrl}${encodeURIComponent(apiUrl)}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(requestBody),
                 });
-                if (!response.ok) throw new Error('Respuesta de red no fue OK');
-                const data = await response.json();
+
+                if (!response.ok) throw new Error(`Respuesta de red no fue OK: ${response.statusText}`);
                 
-                if (data.data && data.data.length > 0) {
+                // allorigins.win envuelve la respuesta en un objeto `contents`, necesitamos parsearlo.
+                const responseText = await response.text();
+                const data = JSON.parse(responseText);
+                
+                if (data.code === "000000" && data.data && data.data.length > 0) {
                     const rate = parseFloat(data.data[0].adv.price);
                     state.exchangeRate = rate;
                     exchangeRateDisplayEl.textContent = `Bs. ${rate.toFixed(2)}`;
                 } else {
-                    throw new Error('No se encontraron datos de cambio');
+                    throw new Error('No se encontraron datos de cambio en la respuesta de Binance');
                 }
             } catch (error) {
                 console.error("Error fetching exchange rate:", error);
@@ -509,7 +511,6 @@
                 exchangeRateDisplayEl.classList.add('text-red-600');
             }
         }
-
 
         // --- INICIALIZACIÓN ---
         function init() {
