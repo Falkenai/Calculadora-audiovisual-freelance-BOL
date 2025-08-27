@@ -199,7 +199,18 @@
                     <div class="card text-center">
                         <h3 class="text-xl font-semibold mb-2">Tu Tarifa por Hora Base</h3>
                         <p class="text-5xl font-bold text-blue-600 mb-4" id="tarifa-hora-display">$0.00</p>
-                        <p class="text-sm text-gray-500">Este es tu costo operativo por hora facturable. Úsalo como base para tus proyectos.</p>
+                        <p class="text-sm text-gray-500">Este es tu costo operativo por hora facturable.</p>
+                    </div>
+
+                    <!-- Tasa de Cambio -->
+                    <div class="card text-center">
+                        <h3 class="text-xl font-semibold mb-2">Cambio USD/BOB</h3>
+                        <p class="text-3xl font-bold text-green-600 mb-2" id="exchange-rate-display">Cargando...</p>
+                        <p class="text-xs text-gray-500">Tasa de compra (USDT) en Binance P2P.</p>
+                        <!-- BOTÓN NUEVO -->
+                        <a href="https://p2p.binance.com/es/trade/buy/USDT?fiat=BOB&payment=all-payments" target="_blank" rel="noopener noreferrer" class="btn btn-secondary w-full mt-4 text-sm py-2">
+                            Ver en Binance P2P
+                        </a>
                     </div>
 
                     <!-- Crear Nuevo Presupuesto -->
@@ -214,7 +225,6 @@
                                 <label for="costos-variables-proyecto">Costos Variables del Proyecto (USD)</label>
                                 <input type="number" id="costos-variables-proyecto" class="input-field" placeholder="Ej: 100" value="0">
                             </div>
-                            <!-- NUEVO CAMPO: TIPO DE CLIENTE -->
                             <div class="input-group">
                                 <label for="tipo-cliente">Tipo de Cliente</label>
                                 <select id="tipo-cliente" class="input-field">
@@ -255,6 +265,7 @@
             margenGanancia: 20,
             iva: 13,
             tarifaHoraBase: 0,
+            exchangeRate: 0, // Nuevo estado para la tasa de cambio
         };
 
         // --- SELECTORES DEL DOM ---
@@ -262,6 +273,7 @@
         const horasFacturablesEl = document.getElementById('horas-facturables');
         const margenGananciaEl = document.getElementById('margen-ganancia');
         const tarifaHoraDisplayEl = document.getElementById('tarifa-hora-display');
+        const exchangeRateDisplayEl = document.getElementById('exchange-rate-display');
         
         const listaCostosOperativosEl = document.getElementById('lista-costos-operativos');
         const formNuevoCostoEl = document.getElementById('form-nuevo-costo');
@@ -277,7 +289,7 @@
         const formPresupuestoEl = document.getElementById('form-presupuesto');
         const horasProyectoEl = document.getElementById('horas-proyecto');
         const costosVariablesProyectoEl = document.getElementById('costos-variables-proyecto');
-        const tipoClienteEl = document.getElementById('tipo-cliente'); // Nuevo selector
+        const tipoClienteEl = document.getElementById('tipo-cliente');
         const resultadoPresupuestoContainerEl = document.getElementById('resultado-presupuesto-container');
         const resultadoPresupuestoEl = document.getElementById('resultado-presupuesto');
 
@@ -309,24 +321,15 @@
         }
 
         function calcularPresupuesto(horas, costosVariables, tipoCliente) {
-            // Paso C: Presupuesto Base
             const presupuestoBase = (state.tarifaHoraBase * horas) + costosVariables;
-            
-            // Subtotal antes de ajustes
             const subtotalAntesAjuste = presupuestoBase * (1 + state.margenGanancia / 100);
-
-            // Nuevo: Calcular ajuste por tipo de cliente
             let ajusteClienteMonto = 0;
             if (tipoCliente === 'negativo') {
                 ajusteClienteMonto = subtotalAntesAjuste * 0.20;
             } else if (tipoCliente === 'positivo') {
                 ajusteClienteMonto = subtotalAntesAjuste * -0.15;
             }
-
-            // Paso D: Subtotal (Precio de Venta) ajustado
             const subtotal = subtotalAntesAjuste + ajusteClienteMonto;
-
-            // Paso E: Precio Final para el Cliente (con IVA)
             const ivaMonto = subtotal * (state.iva / 100);
             const precioFinal = subtotal + ivaMonto;
 
@@ -384,6 +387,9 @@
                 ajusteHtml = `<div class="flex justify-between py-1"><span class="font-semibold ${colorClass}">Ajuste por Cliente:</span> <span class="font-medium ${colorClass}">${sign}$${resultado.ajusteClienteMonto.toFixed(2)}</span></div>`;
             }
 
+            const totalEnBOB = state.exchangeRate > 0 ? (resultado.precioFinal * state.exchangeRate).toFixed(2) : 'N/A';
+            const totalBOBHtml = `<div class="flex justify-between py-2 text-lg bg-green-50 p-3 rounded-lg mt-2"><span class="font-bold text-green-700">TOTAL Aprox. (BOB):</span> <span class="font-extrabold text-green-700">Bs. ${totalEnBOB}</span></div>`;
+
             resultadoPresupuestoEl.innerHTML = `
                 <div class="flex justify-between py-1"><span class="text-gray-600">Costo por Horas:</span> <span class="font-medium">$${resultado.costoPorHoras.toFixed(2)}</span></div>
                 <div class="flex justify-between py-1"><span class="text-gray-600">Costos Variables:</span> <span class="font-medium">$${resultado.costosVariables.toFixed(2)}</span></div>
@@ -396,7 +402,8 @@
                 <div class="flex justify-between py-1 text-lg"><span class="font-semibold">Subtotal (Venta):</span> <span class="font-bold">$${resultado.subtotal.toFixed(2)}</span></div>
                 <div class="flex justify-between py-1"><span class="text-gray-600">IVA (${state.iva}%):</span> <span class="font-medium">$${resultado.ivaMonto.toFixed(2)}</span></div>
                 <hr class="my-2">
-                <div class="flex justify-between py-2 text-2xl bg-blue-50 p-3 rounded-lg"><span class="font-bold text-blue-700">TOTAL FINAL:</span> <span class="font-extrabold text-blue-700">$${resultado.precioFinal.toFixed(2)}</span></div>
+                <div class="flex justify-between py-2 text-2xl bg-blue-50 p-3 rounded-lg"><span class="font-bold text-blue-700">TOTAL FINAL (USD):</span> <span class="font-extrabold text-blue-700">$${resultado.precioFinal.toFixed(2)}</span></div>
+                ${state.exchangeRate > 0 ? totalBOBHtml : ''}
             `;
             resultadoPresupuestoContainerEl.classList.remove('hidden');
         }
@@ -458,6 +465,52 @@
             }
         }
         
+        // --- OBTENER TASA DE CAMBIO (CORREGIDO) ---
+        async function fetchExchangeRate() {
+            const requestBody = {
+                fiat: "BOB",
+                page: 1,
+                rows: 5,
+                tradeType: "BUY",
+                asset: "USDT",
+                countries: [],
+                proMerchantAds: false,
+                shieldMerchantAds: false,
+                publisherType: null,
+                payTypes: [],
+                classifies: ["mass", "profession"]
+            };
+
+            // URL de la API de Binance
+            const apiUrl = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
+            // URL del proxy para evitar errores de CORS
+            const proxyUrl = "https://corsproxy.io/?";
+
+            try {
+                const response = await fetch(proxyUrl + apiUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestBody),
+                });
+                if (!response.ok) throw new Error('Respuesta de red no fue OK');
+                const data = await response.json();
+                
+                if (data.data && data.data.length > 0) {
+                    const rate = parseFloat(data.data[0].adv.price);
+                    state.exchangeRate = rate;
+                    exchangeRateDisplayEl.textContent = `Bs. ${rate.toFixed(2)}`;
+                } else {
+                    throw new Error('No se encontraron datos de cambio');
+                }
+            } catch (error) {
+                console.error("Error fetching exchange rate:", error);
+                exchangeRateDisplayEl.textContent = "Error";
+                exchangeRateDisplayEl.classList.remove('text-green-600');
+                exchangeRateDisplayEl.classList.add('text-red-600');
+            }
+        }
+
+
         // --- INICIALIZACIÓN ---
         function init() {
             // Asignar listeners
@@ -477,6 +530,9 @@
             renderCostosOperativos();
             renderEquipo();
             calcularTarifaHoraBase();
+            
+            // Obtener la tasa de cambio al iniciar
+            fetchExchangeRate();
         }
 
         // Iniciar la aplicación cuando el DOM esté listo
