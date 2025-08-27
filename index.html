@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Presupuesto Audiovisual y Freelance Bolivia</title>
+    <title>Presupuesto Freelance BO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -87,6 +87,40 @@
             background-color: #f9fafb;
             color: #4b5563;
             font-weight: 600;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #3b82f6;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .exchange-rate-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .exchange-rate-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 0.5rem;
+        }
+        .exchange-rate-description {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 1rem;
+        }
+        .manual-rate-container {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
         }
     </style>
 </head>
@@ -204,9 +238,21 @@
 
                     <!-- Tasa de Cambio -->
                     <div class="card text-center">
-                        <h3 class="text-xl font-semibold mb-2">Cambio USD/BOB</h3>
-                        <p class="text-3xl font-bold text-green-600 mb-2" id="exchange-rate-display">Cargando...</p>
-                        <p class="text-xs text-gray-500">Tasa de compra (USDT) en Binance P2P.</p>
+                        <h3 class="text-xl font-semibold mb-4">Cambio USD/BOB</h3>
+                        <div class="exchange-rate-container">
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="exchange-rate-value" id="exchange-rate-display">Cargando...</span>
+                                <span class="loading" id="loading-spinner"></span>
+                            </div>
+                            <p class="exchange-rate-description">Tasa de compra (USDT) en Binance P2P.</p>
+                            
+                            <!-- Campo para entrada manual, inicialmente oculto -->
+                            <div id="manual-rate-container" class="manual-rate-container hidden">
+                                <label for="manual-rate-input" class="text-sm text-gray-600">Fallo la carga. Introduce la tasa manualmente:</label>
+                                <input type="number" id="manual-rate-input" step="0.01" class="input-field mt-1 text-center" placeholder="Ej: 6.96">
+                            </div>
+                        </div>
+                        
                         <a href="https://p2p.binance.com/es/trade/buy/USDT?fiat=BOB&payment=all-payments" target="_blank" rel="noopener noreferrer" class="btn btn-secondary w-full mt-4 text-sm py-2">
                             Ver en Binance P2P
                         </a>
@@ -265,6 +311,7 @@
             iva: 13,
             tarifaHoraBase: 0,
             exchangeRate: 0,
+            lastCalculation: null, // Guardar los parámetros del último cálculo
         };
 
         // --- SELECTORES DEL DOM ---
@@ -273,6 +320,9 @@
         const margenGananciaEl = document.getElementById('margen-ganancia');
         const tarifaHoraDisplayEl = document.getElementById('tarifa-hora-display');
         const exchangeRateDisplayEl = document.getElementById('exchange-rate-display');
+        const loadingSpinnerEl = document.getElementById('loading-spinner');
+        const manualRateContainerEl = document.getElementById('manual-rate-container');
+        const manualRateInputEl = document.getElementById('manual-rate-input');
         
         const listaCostosOperativosEl = document.getElementById('lista-costos-operativos');
         const formNuevoCostoEl = document.getElementById('form-nuevo-costo');
@@ -387,7 +437,20 @@
             }
 
             const totalEnBOB = state.exchangeRate > 0 ? (resultado.precioFinal * state.exchangeRate).toFixed(2) : 'N/A';
-            const totalBOBHtml = `<div class="flex justify-between py-2 text-lg bg-green-50 p-3 rounded-lg mt-2"><span class="font-bold text-green-700">TOTAL Aprox. (BOB):</span> <span class="font-extrabold text-green-700">Bs. ${totalEnBOB}</span></div>`;
+            
+            // HTML para el bloque de totales
+            const totalesHtml = `
+                <div class="bg-gray-50 p-4 rounded-lg mt-4 space-y-2">
+                    <div class="flex justify-between items-center text-xl">
+                        <span class="font-bold text-gray-700">TOTAL (USD):</span>
+                        <span class="font-extrabold text-gray-900">$${resultado.precioFinal.toFixed(2)}</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xl">
+                        <span class="font-bold text-green-700">TOTAL (BOB):</span>
+                        <span class="font-extrabold text-green-800">Bs. ${totalEnBOB}</span>
+                    </div>
+                </div>
+            `;
 
             resultadoPresupuestoEl.innerHTML = `
                 <div class="flex justify-between py-1"><span class="text-gray-600">Costo por Horas:</span> <span class="font-medium">$${resultado.costoPorHoras.toFixed(2)}</span></div>
@@ -401,8 +464,7 @@
                 <div class="flex justify-between py-1 text-lg"><span class="font-semibold">Subtotal (Venta):</span> <span class="font-bold">$${resultado.subtotal.toFixed(2)}</span></div>
                 <div class="flex justify-between py-1"><span class="text-gray-600">IVA (${state.iva}%):</span> <span class="font-medium">$${resultado.ivaMonto.toFixed(2)}</span></div>
                 <hr class="my-2">
-                <div class="flex justify-between py-2 text-2xl bg-blue-50 p-3 rounded-lg"><span class="font-bold text-blue-700">TOTAL FINAL (USD):</span> <span class="font-extrabold text-blue-700">$${resultado.precioFinal.toFixed(2)}</span></div>
-                ${state.exchangeRate > 0 ? totalBOBHtml : ''}
+                ${totalesHtml}
             `;
             resultadoPresupuestoContainerEl.classList.remove('hidden');
         }
@@ -459,59 +521,68 @@
             const costosVariables = parseFloat(costosVariablesProyectoEl.value) || 0;
             const tipoCliente = tipoClienteEl.value;
             if (horas > 0) {
+                // Guardar los parámetros para poder recalcular
+                state.lastCalculation = { horas, costosVariables, tipoCliente };
                 const resultado = calcularPresupuesto(horas, costosVariables, tipoCliente);
                 renderResultadoPresupuesto(resultado);
             }
         }
         
-        // --- OBTENER TASA DE CAMBIO (CORREGIDO Y MEJORADO) ---
+        // --- OBTENER TASA DE CAMBIO CON RESPALDO MANUAL ---
         async function fetchExchangeRate() {
             const requestBody = {
-                fiat: "BOB",
-                page: 1,
-                rows: 5,
-                tradeType: "BUY",
-                asset: "USDT",
-                countries: [],
-                proMerchantAds: false,
-                shieldMerchantAds: false,
-                publisherType: null,
-                payTypes: [],
-                classifies: ["mass", "profession"]
+                fiat: "BOB", page: 1, rows: 5, tradeType: "BUY", asset: "USDT",
+                countries: [], proMerchantAds: false, shieldMerchantAds: false,
+                publisherType: null, payTypes: [], classifies: ["mass", "profession"]
             };
-
             const apiUrl = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
-            // Usando un proxy más robusto: allorigins.win
-            const proxyUrl = "https://api.allorigins.win/raw?url=";
-
-            try {
-                const response = await fetch(`${proxyUrl}${encodeURIComponent(apiUrl)}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(requestBody),
-                });
-
-                if (!response.ok) throw new Error(`Respuesta de red no fue OK: ${response.statusText}`);
-                
-                // allorigins.win envuelve la respuesta en un objeto `contents`, necesitamos parsearlo.
-                const responseText = await response.text();
-                const data = JSON.parse(responseText);
-                
-                if (data.code === "000000" && data.data && data.data.length > 0) {
-                    const rate = parseFloat(data.data[0].adv.price);
-                    state.exchangeRate = rate;
-                    exchangeRateDisplayEl.textContent = `Bs. ${rate.toFixed(2)}`;
-                } else {
-                    throw new Error('No se encontraron datos de cambio en la respuesta de Binance');
+            
+            // Usar proxy alternativo si el principal falla
+            const proxyUrls = [
+                "https://api.allorigins.win/raw?url=",
+                "https://cors-anywhere.herokuapp.com/",
+                "https://corsproxy.io/?"
+            ];
+            
+            let success = false;
+            
+            for (const proxyUrl of proxyUrls) {
+                try {
+                    const response = await fetch(`${proxyUrl}${encodeURIComponent(apiUrl)}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(requestBody),
+                    });
+                    
+                    if (!response.ok) throw new Error(`Network response was not ok: ${response.statusText}`);
+                    const data = await response.json();
+                    
+                    if (data.code === "000000" && data.data && data.data.length > 0) {
+                        const rate = parseFloat(data.data[0].adv.price);
+                        state.exchangeRate = rate;
+                        exchangeRateDisplayEl.textContent = `Bs. ${rate.toFixed(2)}`;
+                        loadingSpinnerEl.classList.add('hidden');
+                        manualRateContainerEl.classList.add('hidden');
+                        success = true;
+                        break;
+                    } else {
+                        throw new Error('No exchange rate data found in Binance response');
+                    }
+                } catch (error) {
+                    console.error(`Error with proxy ${proxyUrl}:`, error);
+                    continue;
                 }
-            } catch (error) {
-                console.error("Error fetching exchange rate:", error);
+            }
+            
+            if (!success) {
                 exchangeRateDisplayEl.textContent = "Error";
                 exchangeRateDisplayEl.classList.remove('text-green-600');
                 exchangeRateDisplayEl.classList.add('text-red-600');
+                loadingSpinnerEl.classList.add('hidden');
+                manualRateContainerEl.classList.remove('hidden');
             }
         }
-
+        
         // --- INICIALIZACIÓN ---
         function init() {
             // Asignar listeners
@@ -521,6 +592,17 @@
             formNuevoCostoEl.addEventListener('submit', handleAddCosto);
             formNuevoEquipoEl.addEventListener('submit', handleAddEquipo);
             formPresupuestoEl.addEventListener('submit', handleCalcularPresupuesto);
+            
+            // Listener para el campo manual que recalcula en tiempo real
+            manualRateInputEl.addEventListener('input', (e) => {
+                state.exchangeRate = parseFloat(e.target.value) || 0;
+                // Si ya se ha calculado un presupuesto, lo actualiza en vivo
+                if (state.lastCalculation) {
+                    const { horas, costosVariables, tipoCliente } = state.lastCalculation;
+                    const resultado = calcularPresupuesto(horas, costosVariables, tipoCliente);
+                    renderResultadoPresupuesto(resultado);
+                }
+            });
 
             // Cargar valores iniciales del estado en los inputs
             ingresoDeseadoEl.value = state.ingresoDeseado;
@@ -534,6 +616,9 @@
             
             // Obtener la tasa de cambio al iniciar
             fetchExchangeRate();
+            
+            // Actualizar la tasa de cambio cada 5 minutos
+            setInterval(fetchExchangeRate, 300000);
         }
 
         // Iniciar la aplicación cuando el DOM esté listo
