@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto Freelance BO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card {
+            background-color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group label {
+            display: block;
+            color: #4b5563;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        .input-field {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .btn-danger {
+            background-color: #ef4444;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            text-align: left;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f9fafb;
+            color: #4b5563;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-6xl">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900">Calculadora de Presupuestos</h1>
+            <p class="text-lg text-gray-600 mt-2">Diseñada para freelancers en Bolivia 🇧🇴</p>
+        </header>
+
+        <!-- Contenedor Principal: Configuración y Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Columna de Configuración -->
+            <div class="lg:col-span-2">
+                <h2 class="text-2xl font-semibold mb-4 text-gray-800">1. Configuración Inicial</h2>
+                
+                <!-- Metas Financieras -->
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-4">🎯 Metas Financieras</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="ingreso-deseado">Ingreso Mensual Deseado (USD)</label>
+                            <input type="number" id="ingreso-deseado" class="input-field" value="1500">
+                        </div>
+                        <div class="input-group">
+                            <label for="horas-facturables">Horas Facturables al Mes</label>
+                            <input type="number" id="horas-facturables" class="input-field" value="100">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Costos Operativos -->
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-4">🧾 Costos Operativos Mensuales</h3>
+                    <div id="lista-costos-operativos">
+                        <!-- Items de costos se añaden aquí -->
+                    </div>
+                    <form id="form-nuevo-costo" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 items-end">
+                        <div class="md:col-span-2">
+                            <label for="nombre-costo" class="text-sm font-medium">Nombre del Gasto</label>
+                            <input type="text" id="nombre-costo" class="input-field mt-1" placeholder="Ej: Adobe Creative Cloud">
+                        </div>
+                        <div>
+                             <label for="valor-costo" class="text-sm font-medium">Costo (USD)</label>
+                            <input type="number" id="valor-costo" class="input-field mt-1" placeholder="Ej: 55">
+                        </div>
+                        <button type="submit" class="btn btn-secondary md:col-start-3">Añadir Costo</button>
+                    </form>
+                </div>
+
+                <!-- Depreciación de Equipo -->
+                <div class="card">
+                    <h3 class="text-xl font-semibold mb-4">💻 Depreciación de Equipo</h3>
+                    <div class="table-container">
+                        <table id="tabla-equipo">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Costo (USD)</th>
+                                    <th>Vida Útil (Meses)</th>
+                                    <th>Depreciación/Mes</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Filas de equipo se añaden aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <form id="form-nuevo-equipo" class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4 items-end">
+                        <div class="md:col-span-2">
+                             <label for="nombre-equipo" class="text-sm font-medium">Nombre del Equipo</label>
+                            <input type="text" id="nombre-equipo" class="input-field mt-1" placeholder="Ej: Sony ZV-E10">
+                        </div>
+                        <div>
+                             <label for="costo-equipo" class="text-sm font-medium">Costo Compra</label>
+                            <input type="number" id="costo-equipo" class="input-field mt-1" placeholder="Ej: 800">
+                        </div>
+                        <div>
+                             <label for="vida-util-equipo" class="text-sm font-medium">Vida Útil (Meses)</label>
+                            <input type="number" id="vida-util-equipo" class="input-field mt-1" placeholder="Ej: 36">
+                        </div>
+                        <button type="submit" class="btn btn-secondary md:col-span-4">Añadir Equipo</button>
+                    </form>
+                </div>
+
+                 <!-- Impuestos y Márgenes -->
+                 <div class="card">
+                    <h3 class="text-xl font-semibold mb-4">📊 Impuestos y Márgenes</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group">
+                            <label for="margen-ganancia">Margen de Ganancia (%)</label>
+                            <input type="number" id="margen-ganancia" class="input-field" value="20">
+                            <p class="text-xs text-gray-500 mt-1">Cubre tu ganancia y el IT (3%).</p>
+                        </div>
+                        <div class="input-group">
+                            <label>IVA (Impuesto al Valor Agregado)</label>
+                            <div class="input-field bg-gray-100">13% (Fijo en Bolivia)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna de Dashboard y Presupuesto -->
+            <div class="lg:col-span-1">
+                <!-- Dashboard -->
+                <div class="sticky top-8">
+                    <div class="card text-center">
+                        <h3 class="text-xl font-semibold mb-2">Tu Tarifa por Hora Base</h3>
+                        <p class="text-5xl font-bold text-blue-600 mb-4" id="tarifa-hora-display">$0.00</p>
+                        <p class="text-sm text-gray-500">Este es tu costo operativo por hora facturable. Úsalo como base para tus proyectos.</p>
+                    </div>
+
+                    <!-- Crear Nuevo Presupuesto -->
+                    <div class="card">
+                        <h2 class="text-2xl font-semibold mb-4 text-gray-800">2. Crear Presupuesto</h2>
+                        <form id="form-presupuesto">
+                            <div class="input-group">
+                                <label for="horas-proyecto">Horas Estimadas para el Proyecto</label>
+                                <input type="number" id="horas-proyecto" class="input-field" placeholder="Ej: 25" required>
+                            </div>
+                            <div class="input-group">
+                                <label for="costos-variables-proyecto">Costos Variables del Proyecto (USD)</label>
+                                <input type="number" id="costos-variables-proyecto" class="input-field" placeholder="Ej: 100" value="0">
+                            </div>
+                            <!-- NUEVO CAMPO: TIPO DE CLIENTE -->
+                            <div class="input-group">
+                                <label for="tipo-cliente">Tipo de Cliente</label>
+                                <select id="tipo-cliente" class="input-field">
+                                    <option value="neutral">Neutral</option>
+                                    <option value="positivo">Positivo (Descuento -15%)</option>
+                                    <option value="negativo">Negativo (Recargo +20%)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-full">Calcular Presupuesto</button>
+                        </form>
+                    </div>
+
+                    <!-- Resultado del Presupuesto -->
+                    <div id="resultado-presupuesto-container" class="card hidden">
+                         <h3 class="text-xl font-semibold mb-4">Resumen del Presupuesto</h3>
+                         <div id="resultado-presupuesto" class="space-y-2 text-gray-700">
+                            <!-- El desglose se inyecta aquí -->
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- ESTADO DE LA APLICACIÓN ---
+        let state = {
+            ingresoDeseado: 1500,
+            horasFacturables: 100,
+            costosOperativos: [
+                { id: Date.now() + 1, nombre: 'Adobe Creative Suite', valor: 55 },
+                { id: Date.now() + 2, nombre: 'Internet Fibra Óptica', valor: 45 },
+            ],
+            equipo: [
+                { id: Date.now() + 3, nombre: 'Sony ZV-E10', costo: 800, vidaUtil: 36 },
+                { id: Date.now() + 4, nombre: 'MacBook Pro M2', costo: 2000, vidaUtil: 48 },
+            ],
+            margenGanancia: 20,
+            iva: 13,
+            tarifaHoraBase: 0,
+        };
+
+        // --- SELECTORES DEL DOM ---
+        const ingresoDeseadoEl = document.getElementById('ingreso-deseado');
+        const horasFacturablesEl = document.getElementById('horas-facturables');
+        const margenGananciaEl = document.getElementById('margen-ganancia');
+        const tarifaHoraDisplayEl = document.getElementById('tarifa-hora-display');
+        
+        const listaCostosOperativosEl = document.getElementById('lista-costos-operativos');
+        const formNuevoCostoEl = document.getElementById('form-nuevo-costo');
+        const nombreCostoEl = document.getElementById('nombre-costo');
+        const valorCostoEl = document.getElementById('valor-costo');
+
+        const tablaEquipoBodyEl = document.querySelector('#tabla-equipo tbody');
+        const formNuevoEquipoEl = document.getElementById('form-nuevo-equipo');
+        const nombreEquipoEl = document.getElementById('nombre-equipo');
+        const costoEquipoEl = document.getElementById('costo-equipo');
+        const vidaUtilEquipoEl = document.getElementById('vida-util-equipo');
+
+        const formPresupuestoEl = document.getElementById('form-presupuesto');
+        const horasProyectoEl = document.getElementById('horas-proyecto');
+        const costosVariablesProyectoEl = document.getElementById('costos-variables-proyecto');
+        const tipoClienteEl = document.getElementById('tipo-cliente'); // Nuevo selector
+        const resultadoPresupuestoContainerEl = document.getElementById('resultado-presupuesto-container');
+        const resultadoPresupuestoEl = document.getElementById('resultado-presupuesto');
+
+        // --- FUNCIONES DE CÁLCULO ---
+
+        function calcularTotalCostosOperativos() {
+            return state.costosOperativos.reduce((total, costo) => total + costo.valor, 0);
+        }
+
+        function calcularDepreciacionTotalMensual() {
+            return state.equipo.reduce((total, item) => {
+                const depreciacionItem = item.costo / item.vidaUtil;
+                return total + depreciacionItem;
+            }, 0);
+        }
+        
+        function calcularCostoFijoTotalMensual() {
+            return calcularTotalCostosOperativos() + calcularDepreciacionTotalMensual();
+        }
+
+        function calcularTarifaHoraBase() {
+            const costoFijoTotal = calcularCostoFijoTotalMensual();
+            if (state.horasFacturables > 0) {
+                state.tarifaHoraBase = (state.ingresoDeseado + costoFijoTotal) / state.horasFacturables;
+            } else {
+                state.tarifaHoraBase = 0;
+            }
+            actualizarUIDashboard();
+        }
+
+        function calcularPresupuesto(horas, costosVariables, tipoCliente) {
+            // Paso C: Presupuesto Base
+            const presupuestoBase = (state.tarifaHoraBase * horas) + costosVariables;
+            
+            // Subtotal antes de ajustes
+            const subtotalAntesAjuste = presupuestoBase * (1 + state.margenGanancia / 100);
+
+            // Nuevo: Calcular ajuste por tipo de cliente
+            let ajusteClienteMonto = 0;
+            if (tipoCliente === 'negativo') {
+                ajusteClienteMonto = subtotalAntesAjuste * 0.20;
+            } else if (tipoCliente === 'positivo') {
+                ajusteClienteMonto = subtotalAntesAjuste * -0.15;
+            }
+
+            // Paso D: Subtotal (Precio de Venta) ajustado
+            const subtotal = subtotalAntesAjuste + ajusteClienteMonto;
+
+            // Paso E: Precio Final para el Cliente (con IVA)
+            const ivaMonto = subtotal * (state.iva / 100);
+            const precioFinal = subtotal + ivaMonto;
+
+            return {
+                costoPorHoras: state.tarifaHoraBase * horas,
+                costosVariables,
+                presupuestoBase,
+                margenMonto: subtotalAntesAjuste - presupuestoBase,
+                subtotalAntesAjuste,
+                ajusteClienteMonto,
+                subtotal,
+                ivaMonto,
+                precioFinal
+            };
+        }
+
+        // --- FUNCIONES DE RENDERIZADO Y UI ---
+
+        function renderCostosOperativos() {
+            listaCostosOperativosEl.innerHTML = state.costosOperativos.map(costo => `
+                <div class="flex justify-between items-center p-2 border-b">
+                    <span>${costo.nombre}</span>
+                    <div class="flex items-center gap-4">
+                        <span class="font-medium">$${costo.valor.toFixed(2)}</span>
+                        <button class="btn-danger" onclick="eliminarCostoOperativo(${costo.id})">X</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderEquipo() {
+            tablaEquipoBodyEl.innerHTML = state.equipo.map(item => {
+                const depreciacionMensual = item.costo / item.vidaUtil;
+                return `
+                    <tr>
+                        <td>${item.nombre}</td>
+                        <td>$${item.costo.toFixed(2)}</td>
+                        <td>${item.vidaUtil}</td>
+                        <td>$${depreciacionMensual.toFixed(2)}</td>
+                        <td><button class="btn-danger" onclick="eliminarEquipo(${item.id})">Eliminar</button></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+        
+        function actualizarUIDashboard() {
+            tarifaHoraDisplayEl.textContent = `$${state.tarifaHoraBase.toFixed(2)}`;
+        }
+
+        function renderResultadoPresupuesto(resultado) {
+            let ajusteHtml = '';
+            if (resultado.ajusteClienteMonto !== 0) {
+                const colorClass = resultado.ajusteClienteMonto > 0 ? 'text-red-600' : 'text-green-600';
+                const sign = resultado.ajusteClienteMonto > 0 ? '+' : '';
+                ajusteHtml = `<div class="flex justify-between py-1"><span class="font-semibold ${colorClass}">Ajuste por Cliente:</span> <span class="font-medium ${colorClass}">${sign}$${resultado.ajusteClienteMonto.toFixed(2)}</span></div>`;
+            }
+
+            resultadoPresupuestoEl.innerHTML = `
+                <div class="flex justify-between py-1"><span class="text-gray-600">Costo por Horas:</span> <span class="font-medium">$${resultado.costoPorHoras.toFixed(2)}</span></div>
+                <div class="flex justify-between py-1"><span class="text-gray-600">Costos Variables:</span> <span class="font-medium">$${resultado.costosVariables.toFixed(2)}</span></div>
+                <hr class="my-1">
+                <div class="flex justify-between py-1"><span class="text-gray-600">Presupuesto Base:</span> <span class="font-medium">$${resultado.presupuestoBase.toFixed(2)}</span></div>
+                <div class="flex justify-between py-1"><span class="text-gray-600">Margen de Ganancia (${state.margenGanancia}%):</span> <span class="font-medium">$${resultado.margenMonto.toFixed(2)}</span></div>
+                <hr class="my-2 border-dashed">
+                <div class="flex justify-between py-1"><span class="text-gray-600">Subtotal antes de ajuste:</span> <span class="font-medium">$${resultado.subtotalAntesAjuste.toFixed(2)}</span></div>
+                ${ajusteHtml}
+                <div class="flex justify-between py-1 text-lg"><span class="font-semibold">Subtotal (Venta):</span> <span class="font-bold">$${resultado.subtotal.toFixed(2)}</span></div>
+                <div class="flex justify-between py-1"><span class="text-gray-600">IVA (${state.iva}%):</span> <span class="font-medium">$${resultado.ivaMonto.toFixed(2)}</span></div>
+                <hr class="my-2">
+                <div class="flex justify-between py-2 text-2xl bg-blue-50 p-3 rounded-lg"><span class="font-bold text-blue-700">TOTAL FINAL:</span> <span class="font-extrabold text-blue-700">$${resultado.precioFinal.toFixed(2)}</span></div>
+            `;
+            resultadoPresupuestoContainerEl.classList.remove('hidden');
+        }
+
+        // --- MANEJADORES DE EVENTOS ---
+
+        function handleConfigChange() {
+            state.ingresoDeseado = parseFloat(ingresoDeseadoEl.value) || 0;
+            state.horasFacturables = parseFloat(horasFacturablesEl.value) || 0;
+            state.margenGanancia = parseFloat(margenGananciaEl.value) || 0;
+            calcularTarifaHoraBase();
+        }
+
+        function handleAddCosto(e) {
+            e.preventDefault();
+            const nombre = nombreCostoEl.value.trim();
+            const valor = parseFloat(valorCostoEl.value);
+            if (nombre && valor > 0) {
+                state.costosOperativos.push({ id: Date.now(), nombre, valor });
+                renderCostosOperativos();
+                calcularTarifaHoraBase();
+                formNuevoCostoEl.reset();
+            }
+        }
+
+        window.eliminarCostoOperativo = (id) => {
+            state.costosOperativos = state.costosOperativos.filter(costo => costo.id !== id);
+            renderCostosOperativos();
+            calcularTarifaHoraBase();
+        }
+
+        function handleAddEquipo(e) {
+            e.preventDefault();
+            const nombre = nombreEquipoEl.value.trim();
+            const costo = parseFloat(costoEquipoEl.value);
+            const vidaUtil = parseInt(vidaUtilEquipoEl.value);
+            if (nombre && costo > 0 && vidaUtil > 0) {
+                state.equipo.push({ id: Date.now(), nombre, costo, vidaUtil });
+                renderEquipo();
+                calcularTarifaHoraBase();
+                formNuevoEquipoEl.reset();
+            }
+        }
+
+        window.eliminarEquipo = (id) => {
+            state.equipo = state.equipo.filter(item => item.id !== id);
+            renderEquipo();
+            calcularTarifaHoraBase();
+        }
+
+        function handleCalcularPresupuesto(e) {
+            e.preventDefault();
+            const horas = parseFloat(horasProyectoEl.value);
+            const costosVariables = parseFloat(costosVariablesProyectoEl.value) || 0;
+            const tipoCliente = tipoClienteEl.value;
+            if (horas > 0) {
+                const resultado = calcularPresupuesto(horas, costosVariables, tipoCliente);
+                renderResultadoPresupuesto(resultado);
+            }
+        }
+        
+        // --- INICIALIZACIÓN ---
+        function init() {
+            // Asignar listeners
+            ingresoDeseadoEl.addEventListener('input', handleConfigChange);
+            horasFacturablesEl.addEventListener('input', handleConfigChange);
+            margenGananciaEl.addEventListener('input', handleConfigChange);
+            formNuevoCostoEl.addEventListener('submit', handleAddCosto);
+            formNuevoEquipoEl.addEventListener('submit', handleAddEquipo);
+            formPresupuestoEl.addEventListener('submit', handleCalcularPresupuesto);
+
+            // Cargar valores iniciales del estado en los inputs
+            ingresoDeseadoEl.value = state.ingresoDeseado;
+            horasFacturablesEl.value = state.horasFacturables;
+            margenGananciaEl.value = state.margenGanancia;
+
+            // Renderizar listas iniciales y calcular tarifa base
+            renderCostosOperativos();
+            renderEquipo();
+            calcularTarifaHoraBase();
+        }
+
+        // Iniciar la aplicación cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
