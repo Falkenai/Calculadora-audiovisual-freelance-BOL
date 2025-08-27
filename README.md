@@ -1,63 +1,41 @@
-Calculadora Freelance Bolivia + Tipo de Cambio P2P Binance
+Calculadora de Presupuestos para Freelancers 🇧🇴
+Una herramienta web sencilla y potente diseñada para ayudar a los freelancers y creadores de contenido en Bolivia a generar presupuestos precisos y estratégicos.
 
-Este proyecto es una calculadora de presupuestos para freelancers en Bolivia 🇧🇴, con integración en tiempo real del tipo de cambio USDT/BOB desde Binance P2P.
+Esta aplicación calcula una tarifa por hora base considerando tus metas de ingresos, costos fijos, depreciación de equipo e impuestos locales, permitiéndote cotizar proyectos de manera más rentable.
 
-🚀 Funcionalidades principales
+(https://imgur.com/a/vbbEwqz)
 
-Cálculo de tarifa por hora base en USD según metas y costos.
+✨ Características Principales
+Cálculo de Tarifa por Hora Base: Define tus metas financieras y costos para obtener una tarifa por hora que cubra todas tus necesidades.
 
-Creación de presupuestos con desglose (margen, IVA, ajustes por cliente).
+Gestión de Costos Fijos: Añade y gestiona tus gastos mensuales recurrentes (suscripciones, servicios, etc.).
 
-Conversión de valores a bolivianos (BOB) usando el precio de USDT en Binance P2P.
+Depreciación de Equipo: Contabiliza el desgaste de tus herramientas de trabajo (cámaras, computadoras) para que tus precios cubran su eventual reemplazo.
 
-Detección de variación en tiempo real del tipo de cambio (⬆ sube, ⬇ baja, sin cambios).
+Impuestos de Bolivia Integrados: Incorpora automáticamente el IVA (13%) y te ayuda a cubrir el IT (3%) a través del margen de ganancia.
 
-Actualización automática cada 60 segundos.
+Ajuste Estratégico por Cliente: Aplica recargos (+20%) o descuentos (-15%) automáticos según el tipo de relación con el cliente.
 
-⚙️ Cómo funciona el tipo de cambio
+Conversión a Bolivianos (BOB) en Tiempo Real: Consulta la tasa de cambio del dólar (USDT en Binance P2P) y muestra el presupuesto final en ambas monedas.
 
-La app realiza una petición POST al endpoint interno de Binance P2P:
+🚀 Cómo Usar
+Configuración Inicial: Rellena tus metas de ingresos, horas facturables al mes, costos operativos y equipo.
 
-https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search
+Crear un Presupuesto: Ingresa las horas estimadas y los costos variables del nuevo proyecto.
 
+Seleccionar Tipo de Cliente: Elige si es un cliente "Positivo", "Negativo" o "Neutral" para aplicar un ajuste automático.
 
-con el siguiente payload:
+¡Listo! La aplicación te mostrará un desglose completo del presupuesto en USD y su equivalente aproximado en BOB.
 
-{
-  "asset": "USDT",
-  "fiat": "BOB",
-  "tradeType": "BUY",
-  "page": 1,
-  "rows": 10,
-  "payTypes": [],
-  "merchantCheck": true
-}
+🛠️ Tecnologías Utilizadas
+HTML5
 
+CSS3 con Tailwind CSS
 
-De la respuesta se extrae el primer anuncio (data[0].adv.price) como referencia del mercado.
+JavaScript (Vanilla JS) para toda la lógica de cálculo y la interacción con la API.
 
-👉 Para evitar problemas de CORS, se usa un proxy abierto:
-https://corsproxy.io/?
+🌐 Demo en Vivo
+Puedes probar la aplicación funcionando en el siguiente enlace:
 
-📂 Archivos
-
-index2_actualizado.html: Calculadora con integración del tipo de cambio.
-
-README.md: Este archivo de documentación.
-
-🖥️ Uso
-
-Clona este repositorio o descarga los archivos.
-
-Abre index2_actualizado.html en cualquier navegador moderno.
-
-La calculadora mostrará el tipo de cambio USDT/BOB P2P actualizado y su variación en tiempo real.
-
-📸 Captura de ejemplo
-Cambio USD/BOB: Bs. 6.95 ⬆ +0.02
-
-⚠️ Nota
-
-Binance no ofrece una API pública oficial para P2P, por lo que este método depende de endpoints usados en su propia web. Podrían cambiar en el futuro.
-
-✍️ Proyecto creado para freelancers en Bolivia que necesitan presupuestar en dólares y bolivianos con datos de mercado en tiempo real.
+(https://falkenai.github.io/Calculadora-audiovisual-freelance-BOL/)
+(Reemplaza esta URL con el enlace de tu GitHub Pages)
